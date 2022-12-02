@@ -33,3 +33,19 @@ less
 - "Wouldn't be nice if we could view how many times a certain shortened link was hitted
 on?"
 - "What about the location and countries of each hit?"
+
+
+## Timeline
+
+### Day 0 (29/11)
+Though about what needed to be done, what could be accomplished, research of other solutions,
+thinking about other perspectives.
+
+### Day 1 (30/11)
+Started to create a basic and simple solution. Just a shortener that works and redirects. Spent a little more
+time than should have on code architecture. Day wasn't as productive  as I know it could have been.
+
+### Day 2 (01/12)
+Continue to develop basic application. Spent some time on AWS integration and AWS Localstack.
+
+
