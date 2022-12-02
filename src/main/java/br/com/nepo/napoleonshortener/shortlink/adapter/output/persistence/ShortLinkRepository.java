@@ -6,6 +6,6 @@ import java.util.Collection;
 
 public interface ShortLinkRepository {
     void save(ShortLinkEntity shortLink) ;
-
     Collection<ShortLink> list();
+    ShortLink retrieve(String id);
 }

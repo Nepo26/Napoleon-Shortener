@@ -3,8 +3,10 @@ package br.com.nepo.napoleonshortener.shortlink.application.port;
 import br.com.nepo.napoleonshortener.shortlink.application.port.input.CreateShortLinkCommand;
 import br.com.nepo.napoleonshortener.shortlink.application.port.input.CreateShortLinkUseCase;
 import br.com.nepo.napoleonshortener.shortlink.application.port.input.ListShortLinkUseCase;
+import br.com.nepo.napoleonshortener.shortlink.application.port.input.RetrieveShortLinkUseCase;
 import br.com.nepo.napoleonshortener.shortlink.application.port.output.CreateShortLinkPort;
 import br.com.nepo.napoleonshortener.shortlink.application.port.output.ListShortLinkPort;
+import br.com.nepo.napoleonshortener.shortlink.application.port.output.RetrieveShortLinkPort;
 import br.com.nepo.napoleonshortener.shortlink.domain.ShortLink;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +21,11 @@ import static br.com.nepo.napoleonshortener.shortlink.utils.RandomAlphanumericGe
 @Component
 @Slf4j
 //@Transactional
-public class ShortLinkService implements CreateShortLinkUseCase, ListShortLinkUseCase {
+public class ShortLinkService implements CreateShortLinkUseCase, ListShortLinkUseCase, RetrieveShortLinkUseCase {
 
     private final CreateShortLinkPort createShortLinkPort;
     private final ListShortLinkPort listShortLinkPort;
+    private final RetrieveShortLinkPort retrieveShortLinkPort;
 
     @Override
     public ShortLink createShortLink(final CreateShortLinkCommand createShortLinkCommand) {
@@ -38,5 +41,10 @@ public class ShortLinkService implements CreateShortLinkUseCase, ListShortLinkUs
     @Override
     public Collection<ShortLink> listShortLinks(final CreateShortLinkCommand createShortLinkCommand) {
         return listShortLinkPort.list();
+    }
+
+    @Override
+    public ShortLink retrieveShortLinkById(final String id) {
+        return retrieveShortLinkPort.retrieve(id);
     }
 }

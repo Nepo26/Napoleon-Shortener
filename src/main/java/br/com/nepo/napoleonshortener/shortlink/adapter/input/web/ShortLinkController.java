@@ -30,9 +30,11 @@ public class ShortLinkController {
         return ResponseEntity.ok(shortLinkService.createShortLink(createShortLinkCommand));
     }
 
-    @GetMapping(path = "/")
-    public ModelAndView redirectToShortLink() {
+    @GetMapping(path = "/{shortLinkId}")
+    public ModelAndView redirectToShortLink(@PathVariable final String shortLinkId) {
 
-        return new ModelAndView("redirect:" + "https://google.com.br");
+        final ShortLink shortLink = shortLinkService.retrieveShortLinkById(shortLinkId);
+
+        return new ModelAndView("redirect:" + shortLink.getLink());
     }
 }

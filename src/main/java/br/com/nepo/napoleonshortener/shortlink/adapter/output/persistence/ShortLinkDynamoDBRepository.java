@@ -40,4 +40,13 @@ public class ShortLinkDynamoDBRepository implements ShortLinkRepository {
                 .map(ShortLinkMapper::mapToDomain)
                 .toList();
     }
+
+    @Override
+    public ShortLink retrieve(final String id) {
+        final ShortLinkEntity shortLinkEntity = mapper.load(ShortLinkEntity.class, id);
+
+        Objects.requireNonNull(shortLinkEntity);
+
+        return ShortLinkMapper.mapToDomain(shortLinkEntity);
+    }
 }
