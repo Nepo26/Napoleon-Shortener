@@ -7,4 +7,4 @@ thirdparty:
     region: us-east-1
     accesskeyId: test
     secretkey: test
-    endpoint: http://localhost:4566/
+    endpoint: http://localstack:4566/
