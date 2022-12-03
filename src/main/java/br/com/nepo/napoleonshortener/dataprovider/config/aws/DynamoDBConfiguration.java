@@ -25,7 +25,7 @@ public class DynamoDBConfiguration {
         final AmazonDynamoDBClientBuilder builder = AmazonDynamoDBClientBuilder
                 .standard();
 
-        if (this.environment.acceptsProfiles(Profiles.of("local", "test"))) {
+        if (this.environment.acceptsProfiles(Profiles.of("local", "test", "localstack"))) {
             final String endpoint = Objects.requireNonNull(this.environment.getProperty("thirdparty.aws.endpoint"));
 
             builder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region));
@@ -41,7 +41,6 @@ public class DynamoDBConfiguration {
                             )
                     )
             );
-
         } else {
             builder.setRegion(region);
         }
