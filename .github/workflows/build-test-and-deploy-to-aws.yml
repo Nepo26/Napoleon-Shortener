@@ -32,7 +32,7 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init and deploy to ECR
-        working-directory: ./infra/terraform/aws_ecr_setup
+        working-directory: ${{ env.TERRAFORM_PATH }}
         id: terraform-init
         run: |
           terraform init
