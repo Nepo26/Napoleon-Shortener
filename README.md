@@ -69,3 +69,11 @@ the architecture. Study how to start working with Github Actions. Created simple
 Continued to study other architectures. Improved how to locally test the application by making a 
 better _docker-compose.yml_. Still trying to better understand github actions before a deep dive.
 Afraid I'll not have enough time to implement what I wished for. Unit and integration tests not yet done.
+
+### Day 5 (04/12)
+### Day 6 (05/12)
+### Day 7 (06/12)
+### Day 8 (07/12)
+
+## Diagram
+![image](./readme/images/diagram.png)
