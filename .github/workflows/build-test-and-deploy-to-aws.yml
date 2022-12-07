@@ -34,7 +34,7 @@ jobs:
         run: cd ${{ env.TERRAFORM_PATH }}
 
       - name: Deploy only the ECR
-        run: tf apply -target=module.ecr -auto-approve -input=false
+        run: terraform apply -target=module.ecr -auto-approve -input=false
 
   ecr-image-upload:
     name: ECR Image Upload
