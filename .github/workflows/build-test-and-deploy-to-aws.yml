@@ -31,11 +31,17 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Go to Terraform Folder
-        run: cd ${{ env.TERRAFORM_PATH }}
+        run: |
+          echo $(pwd)
+          echo $(ls)
+          cd ${{ env.TERRAFORM_PATH }}
 
       - name: Terraform Init
         id: terraform-init
-        run: terraform init
+        run: |
+          echo $(pwd)
+          echo $(ls)
+          terraform init
 
       - name: Deploy only the ECR
         run: terraform apply -target=module.ecr -auto-approve -input=false
