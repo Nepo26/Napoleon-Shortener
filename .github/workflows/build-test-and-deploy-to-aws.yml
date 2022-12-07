@@ -1,5 +1,5 @@
 name: build-test-and-deploy-to-aws
-run-name: ${{ github.actor }} is deploying the application
+run-name: ${{github.actor}} is deploying the application
 on:
   push:
     branches:
@@ -17,9 +17,9 @@ jobs:
     name: Terraform ECR Only setup
     runs-on: ubuntu-latest
     env:
-      TF_VAR_app: ${{ env.TASK_DEFINITION_FAMILY }}
-      TF_VAR_awsregion: ${{ env.AWS_REGION }}
-      TF_VAR_cname: ${{ env.TASK_DEFINITION_FAMILY }}
+      TF_VAR_app: napoleon-shortener
+      TF_VAR_awsregion: us-east-1
+      TF_VAR_cname: napoleon-shortener
 
     steps:
       - name: Checkout
@@ -79,9 +79,9 @@ jobs:
       - terraform-ecr
       - ecr-image-upload
     env:
-      TF_VAR_app: "napoleon-shortener"
-      TF_VAR_awsregion: ${{ env.AWS_REGION }}
-      TF_VAR_cname: ${{ env.TASK_DEFINITION_FAMILY }}
+      TF_VAR_app: napoleon-shortener
+      TF_VAR_awsregion: us-east-1
+      TF_VAR_cname: napoleon-shortener
       TF_VAR_cimage: ${{ needs.ecr-image-upload.outputs.image }}
     steps:
       - name: Checkout
@@ -186,7 +186,7 @@ jobs:
       - ecr-image-upload
       - terraform
     env:
-      CONTAINER_NAME: ${{ env.TASK_DEFINITION_FAMILY }}
+      CONTAINER_NAME: napoleon-shortener
       IMAGE: ${{ needs.ecr-image-upload.outputs.image }}
       ECS_SERVICE: ${{ needs.terraform.outputs.ecsService }}
       ECS_CLUSTER: ${{ needs.terraform.outputs.ecsCluster }}
