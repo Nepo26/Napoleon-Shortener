@@ -12,11 +12,7 @@ resource "aws_ecr_repository_policy" "repository_policy" {
       {
         "Sid": "adds full ecr access to the ${aws_ecr_repository.repository.name} repository",
         "Effect": "Allow",
-        "Principal": {
-          "AWS": [
-
-          ]
-        },
+        "Principal": "*",
         "Action": [
           "ecr:BatchCheckLayerAvailability",
           "ecr:BatchGetImage",

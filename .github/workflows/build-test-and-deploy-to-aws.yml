@@ -12,13 +12,11 @@ env:
   AWS_REGION: us-east-1
   TASK_DEFINITION_FAMILY: napoleon-shortener
   TERRAFORM_PATH: ./infra/terraform/aws
+  TERRAFORM_ECR_PATH: ./infra/terraform/aws_ecr_setup
 jobs:
   terraform-ecr:
     name: Terraform ECR Only setup
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.TERRAFORM_PATH }}
     env:
       TF_VAR_app: napoleon-shortener
       TF_VAR_awsregion: us-east-1
@@ -34,13 +32,13 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Terraform Init
-        working-directory: ${{ env.TERRAFORM_PATH }}
+        working-directory: ${{ env.TERRAFORM_ECR_PATH }}
         id: terraform-init
         run: terraform init
 
       - name: Deploy only the ECR
-        working-directory: ${{ env.TERRAFORM_PATH }}
-        run: terraform apply -target=module.ecr -auto-approve -input=false
+        working-directory: ${{ env.TERRAFORM_ECR_PATH }}
+        run: terraform apply -auto-approve -input=false
 
   ecr-image-upload:
     name: ECR Image Upload
