@@ -33,6 +33,10 @@ jobs:
       - name: Go to Terraform Folder
         run: cd ${{ env.TERRAFORM_PATH }}
 
+      - name: Terraform Init
+        id: terraform-init
+        run: terraform init
+
       - name: Deploy only the ECR
         run: terraform apply -target=module.ecr -auto-approve -input=false
 
@@ -68,7 +72,7 @@ jobs:
           # be deployed to ECS.
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "{name}=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
     outputs:
       image: ${{ steps.build-image.outputs.image}}
 
