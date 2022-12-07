@@ -16,7 +16,7 @@ Premises:
 
 ### Docker Compose
 - Just run docker compose and wait for everything to start up.
-- Then go to _terraform/localstack/database_ and run `terraform apply -auto-approve`
+- Then go to _infra/terraform/localstack/database_ and run `terraform apply -auto-approve`
 - Now you can normally test the application.
 
 ## Though Process
