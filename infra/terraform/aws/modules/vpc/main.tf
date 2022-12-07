@@ -44,6 +44,11 @@ resource "aws_route_table" "route_table" {
 data "aws_availability_zones" "available" {}
 
 variable "subnet_names" {
+  type    = set(string)
+  default = ["elastic-load-balancer-a", "elastic-load-balancer-b", "elastic-load-balancer-c", "ecs-a", "ecs-b", "ecs-c"]
+}
+
+variable "subnet_names_list" {
   type    = list(string)
   default = ["elastic-load-balancer-a", "elastic-load-balancer-b", "elastic-load-balancer-c", "ecs-a", "ecs-b", "ecs-c"]
 }
@@ -55,12 +60,12 @@ resource "aws_subnet" "subnet" {
   # This just makes sure that each subnet gets a different cidr_block
   # 192.0.0.0/24
   # 192.0.1.0/24
-  cidr_block              = "192.0.${index(var.subnet_names, each.key)}.0/24"
+  cidr_block              = "192.0.${index(var.subnet_names_list, each.value)}.0/24"
   availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = true
 
   tags = {
-    Name    = each.key
+    Name    = each.value
     Project = var.application_name
   }
 }
@@ -68,7 +73,7 @@ resource "aws_subnet" "subnet" {
 resource "aws_route_table_association" "route" {
   for_each = var.subnet_names
 
-  subnet_id      = aws_subnet.subnet[each.key].id
+  subnet_id      = aws_subnet.subnet[each.value].id
   route_table_id = aws_route_table.route_table.id
 }
 
@@ -97,8 +102,8 @@ resource "aws_security_group" "ecs_task" {
 resource "aws_security_group_rule" "ingress_load_balancer" {
   for_each = var.lb_ports
 
-  from_port         = each.key
-  to_port           = each.key
+  from_port         = each.value
+  to_port           = each.value
   protocol          = "tcp"
   security_group_id = aws_security_group.load_balancer.id
   cidr_blocks       = ["0.0.0.0/0"]
@@ -108,8 +113,8 @@ resource "aws_security_group_rule" "ingress_load_balancer" {
 resource "aws_security_group_rule" "ingress_ecs_task_elb" {
   for_each = var.ecs_task_ports
 
-  from_port                = each.key
-  to_port                  = each.key
+  from_port                = each.value
+  to_port                  = each.value
   protocol                 = "tcp"
   security_group_id        = aws_security_group.ecs_task.id
   source_security_group_id = aws_security_group.load_balancer.id

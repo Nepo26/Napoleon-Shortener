@@ -3,7 +3,7 @@ resource "aws_alb" "application_load_balancer" {
   internal           = false
   load_balancer_type = "application"
   subnets            = [
-    var.load_balancer_subnet_a, var.load_balancer_subnet_b, var.load_balancer_subnet_c
+    var.load_balancer_subnet_a.id, var.load_balancer_subnet_b.id, var.load_balancer_subnet_c.id
   ]
   security_groups = [var.load_balancer_sg.id]
 
@@ -15,17 +15,15 @@ resource "aws_alb" "application_load_balancer" {
 }
 
 resource "aws_lb_target_group" "ecs_target_group" {
-  for_each = var.ecs_task_ports
-
   name        = "${var.application_name}-ecs"
-  port        = each.key
+  port        = 80
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = var.vpc.id
 
   health_check {
     enabled             = true
-    port                = "80"
+    port                = 80
     protocol            = "HTTP"
     path                = "/actuator/health"
     interval            = 300
@@ -43,14 +41,12 @@ resource "aws_lb_target_group" "ecs_target_group" {
 }
 
 resource "aws_lb_listener" "listener" {
-  for_each = var.ecs_task_ports
-
   load_balancer_arn = aws_alb.application_load_balancer.arn
-  port              = each.key
+  port              = 80
   protocol          = "HTTP"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.ecs_target_group[each.key].arn
+    target_group_arn = aws_lb_target_group.ecs_target_group.arn
   }
 }
 

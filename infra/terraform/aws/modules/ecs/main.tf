@@ -83,7 +83,7 @@ resource "aws_ecs_service" "ecs_service" {
   }
 
   load_balancer {
-    target_group_arn = var.ecs_target_group.arn
+    target_group_arn = var.ecs_target_group.id
     container_name   = var.container_name
     container_port   = var.container_lb_port
   }
