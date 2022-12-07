@@ -29,7 +29,7 @@ variable "container_image" {
 }
 
 variable "container_ports" {
-  type        = set(number)
+  type        = list(number)
   default     = [4215, 80]
   description = "List of ports to be open on the container"
 }

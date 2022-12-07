@@ -23,7 +23,17 @@ variable "cimage" {
 }
 
 variable "container_ports" {
+  type        = map(number)
+  default     = {80:80, 443:443, 4215:4215}
+  description = "The ports to which access the application, be it the container or the load balancer"
+}
+
+variable "ecs_container_ports" {
   type        = list(number)
   default     = [80, 443, 4215]
   description = "The ports to which access the application, be it the container or the load balancer"
 }
+
+variable "AWS_ACCESS_KEY" {}
+
+variable "AWS_SECRET_KEY" {}

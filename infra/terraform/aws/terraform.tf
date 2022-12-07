@@ -2,6 +2,7 @@
 # This is not necessary to run the project
 terraform {
   cloud {
+    organization = "napoleon-shortener"
     workspaces {
       name = "Napoleon-Shortener"
     }

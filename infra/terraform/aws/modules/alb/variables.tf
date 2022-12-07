@@ -13,9 +13,3 @@ variable "load_balancer_subnet_b" {}
 variable "load_balancer_subnet_c" {}
 
 variable "vpc" {}
-
-variable "ecs_task_ports" {
-  type        = list(number)
-  default     = [80]
-  description = "List of ports to allow access on the container"
-}
