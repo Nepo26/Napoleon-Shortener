@@ -1,0 +1,16 @@
+server:
+  port: 4215
+  hostname: zg.com
+
+thirdparty:
+  aws:
+    region: us-east-1
+    accesskeyId: test
+    secretkey: test
+    endpoint: http://localhost:4566/
+
+feign:
+  name: keyprovider
+  url: http://localhost:8080
+  circuitbreaker:
+    enabled: true
