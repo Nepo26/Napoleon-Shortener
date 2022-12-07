@@ -122,7 +122,6 @@ jobs:
         continue-on-error: true
 
       - name: "Terraform result"
-        working-directory: ${{ env.TERRAFORM_PATH }}
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
