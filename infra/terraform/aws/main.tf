@@ -60,3 +60,16 @@ module "auto_scaling" {
   ecs_cluster = module.ecs.ecs_cluster
   ecs_service = module.ecs.ecs_service
 }
+
+resource "aws_dynamodb_table" "ShortLinkTable" {
+  name = "ShortLink"
+  read_capacity = 10
+  write_capacity = 5
+  hash_key = "randomId"
+
+  attribute {
+    name = "randomId"
+    type = "S"
+  }
+
+}

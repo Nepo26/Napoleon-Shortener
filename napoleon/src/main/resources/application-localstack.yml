@@ -8,3 +8,5 @@ thirdparty:
     accesskeyId: test
     secretkey: test
     endpoint: http://localhost:4566/
+
+keyClientUrl: "http://localhost:8080"

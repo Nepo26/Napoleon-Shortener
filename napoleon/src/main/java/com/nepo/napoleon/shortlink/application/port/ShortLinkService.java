@@ -12,12 +12,15 @@ import com.nepo.napoleon.shortlink.domain.ShortLink;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Objects;
 
 import static com.nepo.napoleon.shortlink.utils.RandomAlphanumericGenerator.randomAlphanumeric;
 
@@ -25,13 +28,13 @@ import static com.nepo.napoleon.shortlink.utils.RandomAlphanumericGenerator.rand
 @RequiredArgsConstructor
 @Service
 @Slf4j
+//@CacheConfig(cacheNames = "shortlink-cache")
 public class ShortLinkService implements CreateShortLinkUseCase, ListShortLinkUseCase, RetrieveShortLinkUseCase {
 
     private final CreateShortLinkPort createShortLinkPort;
     private final ListShortLinkPort listShortLinkPort;
     private final RetrieveShortLinkPort retrieveShortLinkPort;
 
-    @Autowired
     private final KeyClient keyClient;
 
     @Override
@@ -39,7 +42,7 @@ public class ShortLinkService implements CreateShortLinkUseCase, ListShortLinkUs
         // Check if it's a valid URI
         new URL(createShortLinkCommand.getLink()).toURI();
 
-        final String randomId = keyClient.getRandomKey().getBody().getKeyValue();
+        final String randomId = Objects.requireNonNull(keyClient.getRandomKey().getBody()).getKeyValue();
 
         final ShortLink shortLink = new ShortLink(randomId, createShortLinkCommand.getLink());
 
@@ -54,6 +57,7 @@ public class ShortLinkService implements CreateShortLinkUseCase, ListShortLinkUs
     }
 
     @Override
+//    @Cacheable
     public ShortLink retrieveShortLinkById(final String id) {
         return retrieveShortLinkPort.retrieve(id);
     }

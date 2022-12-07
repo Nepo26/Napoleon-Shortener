@@ -1,0 +1,9 @@
+spring:
+  profiles:
+    active: @activatedProperties@
+#cloud:
+#  aws:
+#    elasticache:
+#      clusters:
+#        - name: shortlink-cache
+#          expiration: 6000

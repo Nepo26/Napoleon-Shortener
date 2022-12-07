@@ -18,7 +18,7 @@ variable "cname" {
 
 variable "cimage" {
   type        = string
-  default     = "Placeholder123"
+  default     = "hello-world"
   description = "The image where it is hosted, be it with an ECR or Docker Hub or any other docker repository"
 }
 
