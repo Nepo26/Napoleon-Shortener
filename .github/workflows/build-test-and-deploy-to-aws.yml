@@ -1,0 +1,231 @@
+name: build-test-and-deploy-to-aws
+run-name: ${{github.actor}} is deploying the application
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - "*"
+  pull_request:
+
+env:
+  AWS_REGION: us-east-1
+  TASK_DEFINITION_FAMILY: napoleon-shortener
+  TERRAFORM_PATH: ./infra/terraform/aws
+
+jobs:
+  terraform-ecr:
+    name: Terraform ECR Only setup
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_app: napoleon-shortener
+      TF_VAR_awsregion: us-east-1
+      TF_VAR_cname: napoleon-shortener
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init and deploy to ECR
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: terraform-init
+        run: |
+          terraform init
+          terraform apply -auto-approve -input=false -target=module.ecr
+
+  ecr-image-upload:
+    name: ECR Image Upload
+    runs-on: ubuntu-latest
+    needs:
+      - terraform-ecr
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ needs.terraform-ecr.outputs.ecrRepository}}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "{name}=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+    outputs:
+      image: ${{ steps.build-image.outputs.image}}
+
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    needs:
+      - terraform-ecr
+      - ecr-image-upload
+    env:
+      TF_VAR_app: napoleon-shortener
+      TF_VAR_awsregion: us-east-1
+      TF_VAR_cname: napoleon-shortener
+      TF_VAR_cimage: ${{ needs.ecr-image-upload.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Format
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: terraform-format
+        run: |
+          terraform fmt -check
+
+      - name: Terraform Init
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: terraform-init
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: terraform-validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: terraform-plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      - name: "Terraform result"
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.terraform-plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.terraform-format.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.terraform-init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.terraform-validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.terraform-plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+      - name: Terraform Plan Status
+        if: steps.terraform-plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
+
+      - name: Get ECR Repository
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: ecr-repository
+        run: terraform output -raw ecr_repository_name >> $GITHUB_OUTPUT
+
+      - name: Get ECR Repository Registry
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: ecr-registry
+        run: terraform output -raw ecr_repository_registry >> $GITHUB_OUTPUT
+
+      - name: Get ECS Service
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: ecs-service
+        run: terraform output -raw ecs_service_name >> $GITHUB_OUTPUT
+
+      - name: Get ECS Cluster
+        working-directory: ${{ env.TERRAFORM_PATH }}
+        id: ecs-cluster
+        run: terraform output -raw ecs_cluster_name >> $GITHUB_OUTPUT
+    outputs:
+      ecrRepository: ${{ steps.ecr-repository.outputs.ecrRepository }}
+      ecrRegistry: ${{ steps.ecr-registry.outputs.ecrRegistry }}
+      ecsService: ${{ steps.ecs-service.outputs.ecsService }}
+      ecsCluster: ${{ steps.ecs-cluster.outputs.ecsCluster }}
+
+  continuous-integration:
+    name: Build And Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+
+
+  deployment:
+    name: Deployment
+    runs-on: ubuntu-latest
+    needs:
+      - ecr-image-upload
+      - terraform
+    env:
+      CONTAINER_NAME: napoleon-shortener
+      IMAGE: ${{ needs.ecr-image-upload.outputs.image }}
+      ECS_SERVICE: ${{ needs.terraform.outputs.ecsService }}
+      ECS_CLUSTER: ${{ needs.terraform.outputs.ecsCluster }}
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Download Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.TASK_DEFINITION_FAMILY }} --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ env.IMAGE }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true

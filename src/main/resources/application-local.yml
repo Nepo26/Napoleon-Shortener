@@ -1,9 +1,0 @@
-server:
-  port: 4215
-
-thirdparty:
-  aws:
-    region: us-east-1
-    accesskeyId: test
-    secretkey: test
-    endpoint: http://localhost:4566/
