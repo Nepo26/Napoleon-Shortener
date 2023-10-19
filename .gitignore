@@ -18,6 +18,9 @@ target/
 *.iws
 *.iml
 *.ipr
+*.tfstate
+*.hcl
+**/.terraform/
 
 ### NetBeans ###
 /nbproject/private/

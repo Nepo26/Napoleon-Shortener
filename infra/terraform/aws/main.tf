@@ -22,6 +22,7 @@ module "alb" {
   vpc                    = module.vpc.vpc
 }
 
+
 module "ecr" {
   source           = "./modules/ecr"
   application_name = var.app

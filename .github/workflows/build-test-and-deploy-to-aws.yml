@@ -1,12 +1,7 @@
 name: build-test-and-deploy-to-aws
 run-name: ${{github.actor}} is deploying the application
 on:
-  push:
-    branches:
-      - 'main'
-    tags:
-      - "*"
-  pull_request:
+
 
 env:
   AWS_REGION: us-east-1

@@ -43,6 +43,7 @@ public class ShortLinkService implements CreateShortLinkUseCase, ListShortLinkUs
         new URL(createShortLinkCommand.getLink()).toURI();
 
         final String randomId = Objects.requireNonNull(keyClient.getRandomKey().getBody()).getKeyValue();
+//        final String randomId = randomAlphanumeric(5);
 
         final ShortLink shortLink = new ShortLink(randomId, createShortLinkCommand.getLink());
 
